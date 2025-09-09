@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>FoobaKickz</title>
+</head>
+<body>
+  <h1>FoobaKickz</h1>
+
+  <h4>NPM: </h4>
+  <p>{{ npm }}</p> <!-- ubah sesuai NPM kamu -->
+  <h4>Name: </h4>
+  <p>{{ name }}</p> <!-- ubah sesuai nama kamu -->
+  <h4>Class: </h4>
+  <p>{{ class }}</p> <!-- ubah sesuai kelas kamu -->
+
+  <hr>
+  <h2>Featured Products</h2>
+  <ul>
+    {% for p in featured_products %}
+      <li>{{ p.name }} - Rp {{ p.price }}</li>
+    {% empty %}
+      <li>Tidak ada produk unggulan.</li>
+    {% endfor %}
+  </ul>
+
+</body>
+</html>
