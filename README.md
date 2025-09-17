@@ -4,6 +4,7 @@ Kelas   : PBP A
 
 Link    : https://cheryl-raynasya-foobakickz.pbp.cs.ui.ac.id/
 
+PERTANYAAN TUGAS 2:
 1. Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial).
 
     = Dalam mengimplementasikan checklist pada tugas 2 ini, langkah-langkah yang saya lakukan adalah sebagai berikut:
@@ -56,3 +57,38 @@ Link    : https://cheryl-raynasya-foobakickz.pbp.cs.ui.ac.id/
 6. Apakah ada feedback untuk asisten dosen tutorial 1 yang telah kamu kerjakan sebelumnya? 
 
     = Menurut saya, tutorial 1 kemarin sangat membantu dalam mengerjakan tugas 2 saat ini. Penjelasannya cukup jelas dan langkah-langkahnya runtut, sehingga saya lebih mudah memahami alur kerja Django, mulai dari membuat project, app, hingga memahami konsep MVT. Tutorial tersebut juga memberi gambaran awal yang memudahkan saat saya mengimplementasikan model, view, dan template dalam tugas 2 ini.
+
+PERTANYAAN TUGAS 3:
+1. Jelaskan mengapa kita memerlukan data delivery dalam pengimplementasian sebuah platform?
+    
+    = kita membutuhkan data delivery karena platform modern butuh cara yang efisien untuk berkomunikasi antara sisi pengguna (client) dan server.  Saat pengguna berinteraksi dengan aplikasi, mereka pasti ingin pengalaman yang cepat dan mulus tanpa harus memuat ulang seluruh halaman setiap kali mengklik sesuatu. Data delivery memungkinkan hal tersebut terjadi. Server bisa mengirimkan data mentah yang dibutuhkan saja, seperti daftar produk terbaru atau detail, dalam format ringan seperti JSON atau XML. Data ini kemudian diolah oleh browser untuk memperbarui sebagian kecil dari tampilan halaman secara asynchronous.  Tanpa data delivery, setiap interaksi kecil akan memaksa reload seluruh halaman, membuat aplikasi terasa lambat.
+
+2. Menurutmu, mana yang lebih baik antara XML dan JSON? Mengapa JSON lebih populer dibandingkan XML?
+    
+    = Menurut saya, sebagian besar pengembangan web modern saat ini, JSON jelas lebih baik dan lebih unggul daripada XML. Alasan utama JSON menjadi jauh lebih populer adalah karena ia lebih ringan, cepat, dan sangat mudah digunakan, terutama dalam aplikasi berbasis JavaScript. Sintaks JSON yang berupa key-value pair secara langsung cocok dengan struktur objek JavaScript, sehingga proses konversi data di sisi browser menjadi sangat sederhana.  Sebaliknya, XML lebih bertele-tele dengan tag pembuka dan penutupnya, yang membuatnya lebih besar ukurannya dan lebih lambat untuk diurai (parse). Meskipun XML punya keunggulan dalam hal validasi skema dokumen yang kompleks, untuk pertukaran data cepat di API web, kesederhanaan dan efisiensi JSON menjadikannya pilihan yang jauh lebih praktis.
+
+3. Jelaskan fungsi dari method is_valid() pada form Django dan mengapa kita membutuhkan method tersebut?
+    
+    = Fungsi method is_valid() pada form Django adalah sebagai gerbang validasi untuk semua data yang dikirim oleh pengguna. Saat memanggil method ini pada sebuah objek form, Django akan secara otomatis menjalankan serangkaian pemeriksaan untuk memastikan data yang aman. Pemeriksaan ini mencakup validasi apakah kolom wajib sudah diisi, apakah tipe datanya sudah benar, dan apakah data tersebut mematuhi aturan lain yang sudah ditentukan. Method ini sangat dibutuhkan untuk menjaga integritas data di database. Tanpa is_valid(), bisa berisiko menyimpan data yang tidak lengkap, salah format, atau bahkan berbahaya, yang bisa menyebabkan bug dan celah keamanan pada aplikasi. 
+
+4. Mengapa kita membutuhkan csrf_token saat membuat form di Django? Apa yang dapat terjadi jika kita tidak menambahkan csrf_token pada form Django? Bagaimana hal tersebut dapat dimanfaatkan oleh penyerang?
+    
+    = Penggunaan csrf_token pada form Django merupakan langkah keamanan untuk mencegah siber bernama Cross-Site Request Forgery (CSRF). csrf_token mencegah ini dengan menyisipkan sebuah kode rahasia unik yang disisipkan ke dalam form saat halaman dirender dan diverifikasi oleh server ketika menerima request POST. Server hanya akan memproses permintaan jika kode rahasia ini ada dan cocok, sesuatu yang tidak bisa ditebak atau dipalsukan oleh situs penyerang. Jika tidak ada token, penyerang bisa memanfaatkan sesi aktif pengguna untuk mengirim request berbahaya melalui situs atau skrip di domain lain. Dengan adanya verifikasi token, Django akan menolak request yang tidak sah sehingga risiko aksi berbahaya atas nama pengguna dapat dicegah.
+
+5. Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial).
+    = 
+    - Langkah paling awal adalah merancang struktur data produk sepatu. Saya membuka main/models.py dan membuat kelas Product yang berisi semua field yang dibutuhkan, seperti name, price, description, stock, dan sebagainya. Saya juga menambahkan field tambahan seperti created_at yang otomatis menyimpan waktu saat data produk dibuat, serta views untuk menghitung jumlah orang yang sudah membuka detail produk tersebut. Selain itu, saya menambahkan sebuah method bernama increment_views yang berfungsi untuk menambah nilai pada field views setiap kali detail produk diakses. Setelah selesai mendefinisikan struktur datanya, saya menjalankan perintah python manage.py makemigrations dan python manage.py migrate agar tabel produk otomatis terbentuk di dalam database.
+
+    - Agar pengguna bisa menambahkan data produk dengan lebih mudah, saya membuat sebuah ModelForm bernama ProductForm di file forms.py. Form ini secara otomatis mengikuti field yang sudah saya definisikan di model Product, sehingga tidak perlu lagi membuat form dari nol. Di dalam view create_product yang saya tulis di file views.py, saya memanggil ProductForm tersebut untuk menampilkan form sekaligus memproses data yang dikirim melalui metode POST. Jika data yang dimasukkan valid sesuai aturan form, maka objek produk baru akan disimpan ke database. Untuk bagian tampilan, saya menambahkan file create_product.html yang berisi form dengan {% csrf_token %} untuk keamanan. URL dengan path /create-product/ kemudian saya daftarkan ke dalam urls.py agar pengguna bisa mengakses halaman ini langsung dari browser.
+
+    - Untuk halaman utama, saya membuat view show_main yang mengambil semua data produk dari database menggunakan Product.objects.all().  Data ini kemudian saya kirimkan ke template main.html. Di dalam template, saya menggunakan perulangan {% for product in products %} untuk menampilkan setiap produk, lengkap dengan tombol "Add Product" dan tombol "Detail" untuk setiap item. 
+
+    - Untuk memenuhi kebutuhan data delivery, saya membuat empat endpoint baru di file views.py. Dua endpoint pertama (show_json dan show_xml) mengembalikan seluruh produk yang ada di database dalam format JSON dan XML menggunakan fungsi serializers.serialize dari Django. Dua endpoint berikutnya (show_json_by_id dan show_xml_by_id) juga melakukan hal yang sama tetapi hanya untuk satu produk tertentu berdasarkan ID yang diberikan. Supaya lebih aman, saya menggunakan filter() alih-alih get(), sehingga jika produk dengan ID tersebut tidak ditemukan maka server akan mengembalikan kode status 404. Semua endpoint ini kemudian saya daftarkan di file urls.py, masing-masing dengan alamat /json/, /xml/, /json/<int:id>/, dan /xml/<int:id>/.
+
+    - Terakhir, saya membuat halaman detail untuk setiap produk. Di dalam view show_product, saya menggunakan get_object_or_404 untuk mengambil produk berdasarkan ID. Jika produk tersebut ada, maka method increment_views dijalankan untuk menambah jumlah view produk. Setelah itu, detail produk ditampilkan melalui template product_detail.html, yang berisi informasi lengkap seperti nama produk, harga, deskripsi, kategori, jumlah stok, jumlah views, hingga gambar jika ada. URL untuk halaman ini dibuat dinamis dengan pola product/<int:id>/, sehingga setiap produk bisa diakses secara individual. Dengan langkah ini, pengguna tidak hanya bisa melihat daftar produk, tetapi juga informasi detail dari masing-masing item.
+
+6. Apakah ada feedback untuk asdos di tutorial 2 yang sudah kalian kerjakan?
+    = Menurut saya, tutorial 2 kemarin membantu saya dalam memahami cara membuat form di Django serta menampilkan dan mengirim data dalam format XML dan JSON. Saya jadi lebih paham peran serializers, penggunaan csrf_token untuk keamanan, dan bagaimana mengambil data berdasarkan ID. Hal tersebut membuat saya lebih mudah memahami alur pengolahan data di Django dan menerapkannya langsung pada tugas 3 ini.
+
+
+Berikut ini link untuk screenshot hasil akses URL Postman: https://docs.google.com/document/d/167VLB9dLsno-KjxPCkMExkK_7tTaN3LtlrznhF0zwBU/edit?usp=sharing

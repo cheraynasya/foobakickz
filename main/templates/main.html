@@ -1,28 +1,32 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>FoobaKickz</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block content %}
   <h1>FoobaKickz</h1>
 
   <h4>NPM: </h4>
-  <p>{{ npm }}</p> <!-- ubah sesuai NPM kamu -->
+  <p>{{ npm }}</p> 
   <h4>Name: </h4>
-  <p>{{ name }}</p> <!-- ubah sesuai nama kamu -->
+  <p>{{ name }}</p> 
   <h4>Class: </h4>
-  <p>{{ class }}</p> <!-- ubah sesuai kelas kamu -->
+  <p>{{ class }}</p> 
 
-  <hr>
-  <h2>Featured Products</h2>
-  <ul>
-    {% for p in featured_products %}
-      <li>{{ p.name }} - Rp {{ p.price }}</li>
-    {% empty %}
-      <li>Tidak ada produk unggulan.</li>
-    {% endfor %}
-  </ul>
+  <a href="{% url 'main:create_product' %}"><button>+ Add Product</button></a>
+<hr>
 
-</body>
-</html>
+{% if not product_list %}
+<p>Belum ada produk.</p>
+{% else %}
+  {% for p in product_list %}
+    <div>
+      <h2>{{ p.name }}</h2>
+      <p>Rp {{ p.price }} | {{ p.category }} {% if p.is_featured %}| Featured{% endif %}</p>
+      {% if p.thumbnail %}<img src="{{ p.thumbnail }}" alt="{{ p.name }}" width="150">{% endif %}
+      <p>{{ p.description|truncatewords:20 }}...</p>
+      <a href="{% url 'main:show_product' p.id %}"><button>Detail</button></a>
+      <a href="{% url 'main:show_json_by_id' p.id %}">JSON</a> |
+      <a href="{% url 'main:show_xml_by_id' p.id %}">XML</a>
+    </div>
+    <hr>
+  {% endfor %}
+{% endif %}
+{% endblock %}
