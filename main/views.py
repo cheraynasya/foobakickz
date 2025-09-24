@@ -80,6 +80,11 @@ def show_product(request, id):
     context = {'product': product}
     return render(request, "product_detail.html", context)
 
+@login_required
+def my_products(request):
+    products = Product.objects.filter(user=request.user)
+    return render(request, "my_products.html", {"products":products})
+
 @login_required(login_url='/login')
 def show_xml(request):
     product_list = Product.objects.all()

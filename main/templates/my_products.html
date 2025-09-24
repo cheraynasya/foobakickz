@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>My Products</h2>
+
+{% if products %}
+    <ul>
+        {% for product in products %}
+            <li>
+                <strong>{{ product.name }}</strong>  
+                - {{ product.category }}  
+                - Rp {{ product.price }}  
+                - Stock: {{ product.stock }}  
+                <br>
+                Author: {{ product.user.username }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Belum ada product</p>
+{% endif %}
+{% endblock %}

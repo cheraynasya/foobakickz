@@ -1,20 +1,26 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<p><a href="{% url 'main:show_main' %}"><button>← Back to Product List</button></a></p>
+    <p><a href="{% url 'main:show_main' %}"><button>← Back to Product List</button></a></p>
 
-<h1>{{ product.name }}</h1>
-<p>Rp {{ product.price }} | {{ product.category }} {% if product.is_featured %}| Featured{% endif %}</p>
+    <h1>{{ product.name }}</h1>
+    <p>
+        <b>{{ product.category }}</b>
+        {% if product.is_featured %} | <b>Featured</b>{% endif %} |
+        <i>{{ product.created_at|date:"d M Y, H:i" }}</i> |
+        Views: {{ product.views }}
+    </p>
 
-{% if product.thumbnail %}
-<img src="{{ product.thumbnail }}" alt="thumbnail" width="300"><br><br>
-{% endif %}
+    {% if product.thumbnail %}
+        <img src="{{ product.thumbnail }}" alt="Product thumbnail" width="300">
+        <br /><br />
+    {% endif %}
 
-<p>{{ product.description }}</p>
-<p>Stock: {{ product.stock }}</p>
-<p>Views: {{ product.views }}</p>
-{% if product.user %}
-<p>Author: {{ product.user.username }}</p>
-{% else %}
-<p>Author: Anonymous</p>
-{% endif %}
-{% endblock %}
+    <p>{{ product.description }}</p>
+
+    {% if product.user %}
+        <p><b>Author: {{ product.user.username }}</b></p>
+    {% else %}
+        <p><b>Author: Anonymous</b></p>
+    {% endif %}
+{% endblock content %}
