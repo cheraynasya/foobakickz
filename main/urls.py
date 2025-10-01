@@ -6,7 +6,10 @@ app_name = 'main'
 urlpatterns = [
     path('', views.show_main, name='show_main'),
     path('create-product/', views.create_product, name='create_product'),
-    path('product/<str:id>/', views.show_product, name='show_product'),
+    path('product/<int:id>/', views.show_product, name='show_product'),
+    path('product/<int:id>/edit/', views.edit_product, name='edit_product'),
+    path('product/<int:id>/delete/', views.delete_product, name='delete_product'),
+
     path("my-products/", views.my_products, name="my_products"),
 
 

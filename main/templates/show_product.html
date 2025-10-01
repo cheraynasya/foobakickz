@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-3xl mx-auto mt-10">
+  <!-- Card Container -->
+  <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+
+    <!-- Thumbnail -->
+    {% if product.thumbnail %}
+      <img src="{{ product.thumbnail }}" alt="{{ product.name }}" class="w-full h-72 object-cover">
+    {% else %}
+      <div class="w-full h-72 bg-gray-200 flex items-center justify-center text-gray-500">
+        No Image
+      </div>
+    {% endif %}
+
+    <!-- Content -->
+    <div class="p-6">
+      <h1 class="text-3xl font-bold text-navy">{{ product.name }}</h1>
+      <p class="text-xl font-semibold text-tealEgg mt-2">Rp {{ product.price }}</p>
+      <p class="text-sm text-gray-600">{{ product.category }}</p>
+
+      <p class="mt-4 text-gray-700 leading-relaxed">{{ product.description }}</p>
+      
+      <div class="mt-6 grid grid-cols-2 gap-4 text-sm text-gray-500">
+        <p><span class="font-medium">Stock:</span> {{ product.stock }}</p>
+        <p><span class="font-medium">Author:</span> {% if product.user %}{{ product.user.username }}{% else %}Anonymous{% endif %}</p>
+        <p><span class="font-medium">Last Updated:</span> {{ product.date_added|date:"d M Y, H:i" }}</p>
+      </div>
+
+      <!-- Buttons -->
+      <div class="mt-8 flex gap-4">
+        <a href="{% url 'main:show_main' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 py-2 rounded-lg shadow transition">⬅ Back</a>
+        {% if user.is_authenticated and product.user == user %}
+          <a href="{% url 'main:edit_product' product.id %}" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 px-5 py-2 rounded-lg shadow">Edit</a>
+          <a href="{% url 'main:delete_product' product.id %}" class="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg shadow">Delete</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -68,10 +68,43 @@ def create_product(request):
         product = form.save(commit=False)
         product.user = request.user
         product.save()
+        messages.success(request, "Product berhasil dibuat.")
         return redirect('main:show_main')
 
     context = {'form': form}
     return render(request, "create_product.html", context)
+
+@login_required(login_url='/login')
+def edit_product(request, id):
+    product = get_object_or_404(Product, pk=id)
+
+    if product.user != request.user:
+        messages.error(request, "Kamu tidak berhak mengedit produk ini.")
+        return redirect('main:show_main')
+
+    form = ProductForm(request.POST or None, instance=product)
+    if form.is_valid() and request.method == "POST":
+        form.save()
+        messages.success(request, "Product berhasil diupdate.")
+        return redirect('main:show_product', id=product.id)
+
+    context = {'form': form, 'product': product}
+    return render(request, "edit_product.html", context)
+
+@login_required(login_url='/login')
+def delete_product(request, id):
+    product = get_object_or_404(Product, pk=id)
+
+    if product.user != request.user:
+        messages.error(request, "Kamu tidak berhak menghapus produk ini.")
+        return redirect('main:show_main')
+
+    if request.method == "POST":
+        product.delete()
+        messages.success(request, "Product berhasil dihapus.")
+        return redirect('main:show_main')
+
+    return render(request, "confirm_delete.html", {"product": product})
 
 @login_required(login_url='/login')
 def show_product(request, id):
@@ -80,7 +113,7 @@ def show_product(request, id):
     context = {'product': product}
     return render(request, "product_detail.html", context)
 
-@login_required
+@login_required(login_url='/login')
 def my_products(request):
     products = Product.objects.filter(user=request.user)
     return render(request, "my_products.html", {"products":products})

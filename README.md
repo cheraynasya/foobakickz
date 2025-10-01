@@ -77,7 +77,7 @@ Link    : https://cheryl-raynasya-foobakickz.pbp.cs.ui.ac.id/
 
     5. Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial).
         = 
-        - Langkah paling awal adalah merancang struktur data produk sepatu. Saya membuka main/models.py dan membuat kelas Product yang berisi semua field yang dibutuhkan, seperti name, price, description, stock, dan sebagainya. Saya juga menambahkan field tambahan seperti created_at yang otomatis menyimpan waktu saat data produk dibuat, serta views untuk menghitung jumlah orang yang sudah membuka detail produk tersebut. Selain itu, saya menambahkan sebuah method bernama increment_views yang berfungsi untuk menambah nilai pada field views setiap kali detail produk diakses. Setelah selesai mendefinisikan struktur datanya, saya menjalankan perintah python manage.py makemigrations dan python manage.py migrate agar tabel produk otomatis terbentuk di dalam database.
+        - Langkah paling awal adalah merancang struktur data produk. Saya membuka main/models.py dan membuat kelas Product yang berisi semua field yang dibutuhkan, seperti name, price, description, stock, dan sebagainya. Saya juga menambahkan field tambahan seperti created_at yang otomatis menyimpan waktu saat data produk dibuat, serta views untuk menghitung jumlah orang yang sudah membuka detail produk tersebut. Selain itu, saya menambahkan sebuah method bernama increment_views yang berfungsi untuk menambah nilai pada field views setiap kali detail produk diakses. Setelah selesai mendefinisikan struktur datanya, saya menjalankan perintah python manage.py makemigrations dan python manage.py migrate agar tabel produk otomatis terbentuk di dalam database.
 
         - Agar pengguna bisa menambahkan data produk dengan lebih mudah, saya membuat sebuah ModelForm bernama ProductForm di file forms.py. Form ini secara otomatis mengikuti field yang sudah saya definisikan di model Product, sehingga tidak perlu lagi membuat form dari nol. Di dalam view create_product yang saya tulis di file views.py, saya memanggil ProductForm tersebut untuk menampilkan form sekaligus memproses data yang dikirim melalui metode POST. Jika data yang dimasukkan valid sesuai aturan form, maka objek produk baru akan disimpan ke database. Untuk bagian tampilan, saya menambahkan file create_product.html yang berisi form dengan {% csrf_token %} untuk keamanan. URL dengan path /create-product/ kemudian saya daftarkan ke dalam urls.py agar pengguna bisa mengakses halaman ini langsung dari browser.
 
@@ -159,3 +159,64 @@ Link    : https://cheryl-raynasya-foobakickz.pbp.cs.ui.ac.id/
             Langkah keempat, saya mengonfigurasi routing URL dan memperbarui template. Saya mendaftarkan path untuk /register/, /login/, dan /logout/ di dalam main/urls.py, menghubungkan setiap URL ke fungsi view yang telah dibuat. Selanjutnya, saya memperbarui main.html untuk menampilkan informasi pengguna secara dinamis ({{ name }} yang kini berisi request.user.username) dan waktu login terakhir ({{ last_login }}). Saya juga menambahkan tombol Logout serta tombol filter "All Products" dan "My Products". Pada template product_detail.html, saya menambahkan baris kode untuk menampilkan nama pembuat produk ({{ product.user.username }}).
 
             Langkah terakhir, saya membuat dua akun pengguna yang berbeda melalui halaman registrasi. Kemudian, saya login menggunakan masing-masing akun dan membuat tiga dummy data produk untuk setiap akun. Ini memastikan bahwa setiap produk memiliki pemilik yang jelas. Setelah itu, saya melakukan pengujian menyeluruh: memastikan halaman utama tidak bisa diakses sebelum login, memverifikasi bahwa cookie last_login muncul dan diperbarui setelah login, dan menguji fungsionalitas tombol filter "My Products" yang berhasil menampilkan produk sesuai dengan pengguna yang sedang login.
+
+### PERTANYAAN TUGAS 5:
+        1.  Jika terdapat beberapa CSS selector untuk suatu elemen HTML, jelaskan urutan prioritas pengambilan CSS selector tersebut!
+
+            = Ketika terdapat style yang bertentangan untuk satu elemen, browser akan mengikuti aturan Specificity (Spesifisitas). Urutan prioritas dari tertinggi ke terendah adalah:
+            !important (Sebaiknya dihindari)
+
+            Inline Styles (style="...")
+
+            ID Selector (#id)
+
+            Class Selector, Attribute Selector, Pseudo-class (.class, [attr], :hover)
+
+            Element Selector dan Pseudo-element (p, div, ::after)
+
+            Universal Selector (*)
+        
+        2. Mengapa responsive design menjadi konsep yang penting dalam pengembangan aplikasi web? Berikan contoh aplikasi yang sudah dan belum menerapkan responsive design, serta jelaskan mengapa!
+
+            = Responsive Design adalah praktik memastikan layout web dapat menyesuaikan diri secara otomatis dan optimal di berbagai ukuran layar (dari smartphone hingga desktop).
+
+            Mengapa Penting: Mayoritas pengguna mengakses web melalui ponsel, sehingga responsive design sangat penting untuk pengalaman pengguna (UX) yang baik dan SEO (mesin pencari memprioritaskan situs mobile-friendly).
+
+            Contoh: Situs berita Google News (responsive) mengubah layout multi-kolom di desktop menjadi kolom tunggal di ponsel; sementara situs web lama (tidak responsive) akan memaksa pengguna untuk zoom dan scroll horizontal di ponsel.
+        
+        3. Jelaskan perbedaan antara margin, border, dan padding, serta cara untuk mengimplementasikan ketiga hal tersebut!
+
+            = Margin, border, dan padding adalah bagian dari box model:
+
+            Padding: ruang di dalam elemen, antara konten dan border. Gunakan padding untuk memberi jarak antara teks/gambar dengan tepi kotak. Contoh: padding: 12px; atau Tailwind p-3.
+
+            Border: garis yang mengelilingi kotak, berada di luar padding, sebelum margin. Digunakan untuk memberi garis tepi: border: 2px solid #ccc; atau Tailwind border-2 border-gray-300.
+
+            Margin: ruang di luar border, memisahkan elemen dari elemen lain. Contoh: margin: 16px 0; atau Tailwind mt-4 mb-4.
+        
+        4. Jelaskan konsep flex box dan grid layout beserta kegunaannya!
+
+            = Flexbox (Flexible Box): solusi untuk tata letak satu dimensi (satu baris atau satu kolom). Gunakan display: flex; lalu atur flex-direction, justify-content, align-items, flex-wrap. Flexbox sangat cocok untuk navbar, centering horizontal/vertikal, dan komponen yang butuh distribusi ruang adaptif. Contoh: membuat baris tombol yang rapi atau men-center konten di card.
+
+            Grid Layout: solusi untuk tata letak dua dimensi (baris & kolom sekaligus). Gunakan display: grid; lalu grid-template-columns, grid-gap, grid-template-rows, grid-area. Grid cocok untuk layout halaman utama (catalog/galleries) yang butuh kontrol baris + kolom secara eksplisit.
+            Keduanya saling melengkapi: gunakan flex untuk elemen internal (mis. tombol di card) dan grid untuk struktur utama (mis. grid produk 3 kolom di desktop, 1 kolom di HP). Di Tailwind kamu bisa memakai flex, justify-between, grid grid-cols-3 md:grid-cols-2 sm:grid-cols-1, dll.
+        
+        5. Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial)!
+
+            = Langkah pertama saya mengubah model dengan menghubungkan Product ke User (menambahkan user = ForeignKey(User, on_delete=models.CASCADE, null=True) di main/models.py) lalu menjalankan python manage.py makemigrations dan python manage.py migrate. saya menjelaskan bahwa awalnya pakai null=True supaya migrasi tidak memaksa default pada baris lama; setelah tabel bersih atau data lama ditangani, bisa diubah lagi jika mau non-nullable.
+
+            Langkah kedua saya menambahkan fitur autentikasi: membuat view register menggunakan UserCreationForm, view login_user menggunakan AuthenticationForm + login() yang juga membuat cookie last_login, serta view logout_user yang memanggil logout() dan menghapus cookie last_login. saya daftarkan route register/, login/, dan logout/ di main/urls.py dan menyiapkan template register.html dan login.html yang sudah distyling dengan Tailwind.
+
+            Langkah ketiga saya ubah view show_main supaya menerima filter (?filter=my vs all), mengambil last_login dari request.COOKIES.get('last_login', 'Never'), dan memasukkan npm, name, class ke context sehingga navbar dan halaman utama bisa menampilkan username, npm, kelas, dan last login. saya juga memasang decorator @login_required di view yang butuh proteksi sesuai kebutuhan (ingat kalau mau publik, jangan pasang decorator).
+
+            Langkah keempat saya membuat fungsi create/edit/delete untuk product: create_product menyimpan product.user = request.user sebelum save(); edit_product menggunakan ProductForm(request.POST or None, instance=product) dan menyimpan perubahan jika valid; delete_product mengambil object dengan get_object_or_404 lalu .delete() dan redirect kembali ke daftar. semua route edit/delete ditambahkan di urls.py dan saya batasi tombol Edit/Delete di template agar hanya muncul jika user.is_authenticated and p.user == user.
+
+            Langkah kelima saya menyiapkan dua akun dan dummy data. saya sarankan dua cara: membuat akun melalui form register di web lalu menambah tiga produk tiap akun, atau menggunakan Django shell (createsuperuser/create_user + Product.objects.create(...)) untuk langsung menambahkan enam dummy product. saya juga jelaskan cara menghapus dummy lewat shell (Product.objects.filter(user__username='user1').delete()).
+
+            Langkah keenam saya mengimplementasikan cookies dan session: ketika berhasil login saya redirect menggunakan HttpResponseRedirect(reverse('main:show_main')) lalu response.set_cookie('last_login', str(datetime.now())); di logout saya response.delete_cookie('last_login'). pada halaman utama saya menampilkan Last login: {{ last_login }} dari context untuk memperlihatkan cookie tersebut.
+
+            Langkah ketujuh saya melakukan styling dengan Tailwind: menambahkan CDN Tailwind dan link ke static/css/global.css di base.html, membuat global.css untuk aturan form kustom, dan mengubah template main.html, create_product.html, edit_product.html, product_detail.html, login.html, register.html menjadi responsif dan menarik menggunakan kelas Tailwind serta card grid untuk daftar produk. saya pastikan ada kondisi empty state yang menampilkan gambar no-product.png dan pesan kalau belum ada produk.
+
+            Langkah kedelapan saya membuat navbar.html yang responsif: brand di kiri, menu di tengah untuk desktop, dan user info + npm + class + tombol Logout di kanan; untuk mobile saya buat tombol hamburger yang toggles menu (JS singkat) sehingga saat diklik muncul menu vertikal yang juga menampilkan username, npm, class, dan tombol logout. navbar ini di-include di base.html sehingga konsisten di semua halaman.
+
+            Langkah kesembilan saya melakukan pengujian: jalankan python manage.py runserver, coba register dua akun, login masing-masing, buat 3 produk per akun, cek ?filter=my dan ?filter=all, pastikan tombol edit/delete hanya terlihat oleh pemilik, cek cookie last_login di DevTools, dan pastikan endpoint JSON/XML berfungsi bila diperlukan. jika ada error migrasi terkait field user non-nullable, saya sarankan tetap pakai null=True lalu bersihkan data sebelum mengubah ke non-nullable.

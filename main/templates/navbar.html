@@ -1,0 +1,71 @@
+<nav class="fixed top-0 left-0 w-full bg-navy border-b border-navy/20 shadow-sm z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      
+      <!-- Brand -->
+      <a href="{% url 'main:show_main' %}" class="text-lg font-bold">
+        <span class="text-tealEgg">Fooba</span><span class="text-white">Kickz</span>
+      </a>
+
+      <!-- Desktop Menu -->
+      <div class="hidden sm:flex sm:items-center sm:space-x-6">
+        <a href="{% url 'main:show_main' %}" class="text-white hover:text-tealEgg">Home</a>
+        <a href="#" class="text-white hover:text-tealEgg">Shoes</a>
+        <a href="#" class="text-white hover:text-tealEgg">Apparel</a>
+        <a href="#" class="text-white hover:text-tealEgg">Hardware</a>
+        <a href="#" class="text-white hover:text-tealEgg">Stores</a>
+
+        {% if user.is_authenticated %}
+          <a href="{% url 'main:create_product' %}" class="text-white hover:text-tealEgg">Add Product</a>
+        {% endif %}
+
+        <!-- User Info Desktop -->
+        {% if user.is_authenticated %}
+        <div class="text-right ml-6">
+          <p class="text-sm font-semibold text-white">{{ user.username }}</p>
+          <p class="text-xs text-gray-300">{{ npm|default:"2406437571" }} - {{ kelas|default:"PBP A" }}</p>
+          <p class="text-xs text-gray-400">Last login: {{ last_login|default:"Never" }}</p>
+        </div>
+        <a href="{% url 'main:logout' %}" class="ml-3 text-red-400 hover:text-red-500 font-medium">Logout</a>
+        {% else %}
+        <a href="{% url 'main:login' %}" class="text-gray-200 hover:text-white">Login</a>
+        <a href="{% url 'main:register' %}" class="ml-3 bg-tealEgg text-white px-3 py-1 rounded hover:bg-white hover:text-navy transition">Register</a>
+        {% endif %}
+      </div>
+
+      <!-- Hamburger (Mobile) -->
+      <div class="sm:hidden">
+        <button id="mobile-menu-btn" aria-label="Open menu" class="p-2 text-white">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="hidden sm:hidden border-t border-navy/20 bg-navy">
+    <div class="px-4 py-4 space-y-3">
+      <a href="{% url 'main:show_main' %}" class="block text-white hover:text-tealEgg">Home</a>
+      <a href="#" class="block text-white hover:text-tealEgg">Shoes</a>
+      <a href="#" class="block text-white hover:text-tealEgg">Apparel</a>
+      <a href="#" class="block text-white hover:text-tealEgg">Hardware</a>
+      <a href="#" class="block text-white hover:text-tealEgg">Stores</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'main:create_product' %}" class="block text-white hover:text-tealEgg">Add Product</a>
+      {% endif %}
+      <hr class="my-2 border-tealEgg/50" />
+      {% if user.is_authenticated %}
+        <div class="font-medium text-tealEgg">{{ user.username }}</div>
+        <div class="text-sm text-gray-300">{{ npm|default:"2406437571" }} - {{ kelas|default:"PBP A" }}</div>
+        <div class="text-xs text-gray-400 mb-2">Last login: {{ last_login|default:"Never" }}</div>
+        <a href="{% url 'main:logout' %}" class="block text-red-400 hover:text-red-500">Logout</a>
+      {% else %}
+        <a href="{% url 'main:login' %}" class="block text-white hover:text-tealEgg">Login</a>
+        <a href="{% url 'main:register' %}" class="block bg-tealEgg text-white px-3 py-1 rounded hover:bg-white hover:text-navy transition">Register</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>

@@ -1,28 +1,79 @@
 {% extends 'base.html' %}
 
 {% block meta %}
-    <title>Register</title>
+<title>Register - FoobaKickz</title>
 {% endblock meta %}
 
 {% block content %}
-    <div>
-        <h1>Register</h1>
-        <form method="POST">
+<div class="min-h-screen flex items-center justify-center py-12">
+  <div class="w-full max-w-3xl mx-auto px-6">
+    <div class="bg-[#042A4A] rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
+      <!-- Left: hero -->
+      <div class="hidden md:flex flex-col justify-center px-8 py-10 gap-4">
+        <h2 class="text-3xl font-extrabold text-white">Join FoobaKickz!</h2>
+      </div>
+
+      <!-- Right: form -->
+      <div class="bg-white p-8 md:p-10">
+        <div class="mb-6 text-center">
+          <a href="{% url 'main:show_main' %}" class="inline-block text-2xl font-bold text-[#042A4A]">
+            <span class="text-[#0ea5a4]">Fooba</span>Kickz
+          </a>
+          <p class="text-sm text-gray-500 mt-2">Create your account</p>
+        </div>
+
+        <div class="form-style">
+          {% if messages %}
+            <div class="mb-4">
+              {% for message in messages %}
+                <div class="px-4 py-2 rounded text-sm {% if message.tags == 'success' %}bg-green-50 text-green-700{% else %}bg-red-50 text-red-700{% endif %}">
+                  {{ message }}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if form.non_field_errors %}
+            <div class="mb-4">
+              {% for err in form.non_field_errors %}
+                <div class="px-3 py-2 rounded bg-red-50 text-red-700 text-sm">{{ err }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <form method="POST" novalidate>
             {% csrf_token %}
-            <table>
-                {{ form.as_table }}
-                <tr>
-                    <td></td>
-                    <td><input type="submit" value="Daftar"/></td>
-                </tr>
-            </table>
-        </form>
-        {% if messages %}
-            <ul>
-                {% for message in messages %}
-                    <li>{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+            <div class="space-y-4">
+              {{ form.username.label_tag }}
+              {{ form.username }}
+              {% for e in form.username.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ e }}</p>
+              {% endfor %}
+
+              {{ form.password1.label_tag }}
+              {{ form.password1 }}
+              {% for e in form.password1.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ e }}</p>
+              {% endfor %}
+
+              {{ form.password2.label_tag }}
+              {{ form.password2 }}
+              {% for e in form.password2.errors %}
+                <p class="text-red-600 text-sm mt-1">{{ e }}</p>
+              {% endfor %}
+            </div>
+
+            <div class="mt-6 flex items-center justify-between">
+              <a href="{% url 'main:login' %}" class="text-sm text-gray-500 hover:underline">Already have an account?</a>
+              <button type="submit" class="bg-[#042A4A] hover:bg-[#032235] text-white px-4 py-2 rounded-md font-semibold">Create account</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-{% endblock content %}
+
+    <!-- small footer note -->
+    <p class="text-xs text-gray-400 text-center mt-4">By creating an account you agree to our terms.</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,26 +1,29 @@
 {% extends 'base.html' %}
-
+{% block meta %}<title>{{ product.name }}</title>{% endblock %}
 {% block content %}
-    <p><a href="{% url 'main:show_main' %}"><button>← Back to Product List</button></a></p>
+<div class="max-w-3xl mx-auto bg-white rounded border p-6">
+  <a href="{% url 'main:show_main' %}" class="text-gray-600 hover:text-gray-900">← Back to Products</a>
+  <h1 class="text-2xl font-bold mt-4">{{ product.name }}</h1>
+  <p class="text-sm text-gray-500">Rp {{ product.price }} • {{ product.category }} {% if product.is_featured %}| Featured{% endif %}</p>
+  <p class="text-xs text-gray-400">Created: {{ product.created_at|date:"d M Y, H:i" }} • Views: {{ product.views }}</p>
 
-    <h1>{{ product.name }}</h1>
-    <p>
-        <b>{{ product.category }}</b>
-        {% if product.is_featured %} | <b>Featured</b>{% endif %} |
-        <i>{{ product.created_at|date:"d M Y, H:i" }}</i> |
-        Views: {{ product.views }}
-    </p>
+  {% if product.thumbnail %}
+    <img src="{{ product.thumbnail }}" alt="{{ product.name }}" class="w-full h-64 object-cover mt-4 rounded">
+  {% endif %}
 
-    {% if product.thumbnail %}
-        <img src="{{ product.thumbnail }}" alt="Product thumbnail" width="300">
-        <br /><br />
-    {% endif %}
+  <div class="mt-4 text-gray-700">{{ product.description }}</div>
 
-    <p>{{ product.description }}</p>
-
-    {% if product.user %}
-        <p><b>Author: {{ product.user.username }}</b></p>
-    {% else %}
-        <p><b>Author: Anonymous</b></p>
-    {% endif %}
-{% endblock content %}
+  <div class="mt-6 flex items-center justify-between">
+    <div>
+      <p class="text-sm">Author: <strong>{% if product.user %}{{ product.user.username }}{% else %}Anonymous{% endif %}</strong></p>
+      <p class="text-xs text-gray-500">Last login: {{ last_login }}</p>
+    </div>
+    <div class="flex gap-2">
+      {% if user.is_authenticated and product.user == user %}
+        <a href="{% url 'main:edit_product' product.id %}" class="px-3 py-1 bg-yellow-400 rounded">Edit</a>
+        <a href="{% url 'main:delete_product' product.id %}" class="px-3 py-1 bg-red-500 text-white rounded">Delete</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
