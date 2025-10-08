@@ -64,7 +64,6 @@
 </div>
 
 <script>
-// --- KONFIGURASI DAN ELEMEN DOM ---
 const PRODUCT_API_ENDPOINT = "{% url 'main:show_json' %}";
 const CREATE_ENDPOINT = "{% url 'main:create_product_ajax' %}";
 const EDIT_ENDPOINT_BASE = "{% url 'main:edit_product_ajax' 0 %}".replace('/0/', '/');
@@ -80,7 +79,6 @@ const showAllProductsButton = document.getElementById('filter-all');
 const showMyProductsButton = document.getElementById('filter-my');
 const refreshButton = document.getElementById('refreshButton');
 
-// Modal Elements
 const crudModal = document.getElementById('crudModal');
 const crudModalContent = document.getElementById('crudModalContent');
 const modalTitle = document.getElementById('modalTitle');
@@ -91,16 +89,13 @@ const deleteModal = document.getElementById('deleteModal');
 const deleteModalContent = document.getElementById('deleteModalContent');
 const deleteProductName = document.getElementById('deleteProductName');
 
-// State Variables
 let activeFilter = 'all';
 let allProductsData = [];
 let productToDeleteId = null;
 
-// --- UTILITY FUNCTIONS ---
 
 function showModal(modalElement, contentElement) {
     modalElement.classList.remove('hidden');
-    // Force reflow for transition
     void contentElement.offsetWidth;
     contentElement.classList.remove('scale-95', 'opacity-0');
     contentElement.classList.add('scale-100', 'opacity-100');
@@ -111,7 +106,6 @@ function closeModal() {
     crudModalContent.classList.add('scale-95', 'opacity-0');
     setTimeout(() => {
         crudModal.classList.add('hidden');
-        // Reset form after closing
         productForm.reset();
         productIdInput.value = '';
         modalTitle.textContent = 'Create New Product';
@@ -138,7 +132,6 @@ function openEditModal(product) {
     modalTitle.textContent = `Edit Product: ${product.fields.name}`;
     submitButton.textContent = 'Update Product';
     
-    // Fill form
     productIdInput.value = product.pk;
     document.getElementById('name').value = product.fields.name;
     document.getElementById('amount').value = product.fields.amount;
@@ -156,7 +149,6 @@ function openDeleteModal(productId, productName) {
 function updateFilterButtonsAppearance() {
     if (!showAllProductsButton || !showMyProductsButton) return;
     
-    // Helper function to set classes
     const setClasses = (el, active) => {
         const activeClasses = 'bg-tealEgg text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-tealEgg/90';
         const inactiveClasses = 'bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md font-medium transition-colors hover:bg-tealEgg hover:text-white';
@@ -180,7 +172,6 @@ function displayPageSection({ showLoading = false, showError = false, showEmpty 
     }
 }
 
-// --- RENDERING FUNCTIONS ---
 
 function buildProductCardElement(product) {
     const pk = product.pk;
@@ -244,7 +235,6 @@ function filterAndDisplayProducts() {
     }
 }
 
-// --- AJAX/FETCH FUNCTIONS ---
 
 async function fetchProductsFromServer() {
     try {
@@ -269,7 +259,6 @@ async function fetchProductsFromServer() {
     }
 }
 
-// --- CRUD AJAX HANDLERS ---
 
 async function handleFormSubmit(event) {
     event.preventDefault();

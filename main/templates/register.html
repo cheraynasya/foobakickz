@@ -62,7 +62,7 @@
             } else {
                 showToast('Registration Failed', data.message || 'Please check form errors.', 'error');
                 console.error('AJAX Register Error:', data.errors || data.message);
-                // Tambahkan logika untuk menampilkan errors pada field spesifik jika Anda mengimplementasikannya.
+                
             }
         } catch (error) {
             showToast('Error', 'Network error. Could not connect to the server.', 'error');

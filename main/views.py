@@ -43,7 +43,6 @@ def logout_user(request):
 
 @login_required
 def show_json(request): 
-    # Mengambil semua produk. Filter My Products dilakukan di sisi JS
     product_list = Product.objects.all().select_related('user')
     data = []
     
@@ -52,7 +51,7 @@ def show_json(request):
             'pk': product.pk,
             'fields': {
                 'user': product.user.username,
-                'user_id': product.user_id, # PENTING: Untuk filter 'My Products' di JS
+                'user_id': product.user_id, 
                 'name': product.name,
                 'amount': product.amount,
                 'description': product.description,
@@ -123,7 +122,6 @@ def login_ajax(request):
 
 
 def logout_ajax(request):
-    # Cookie deletion dan redirect akan dilakukan di sisi JS, Django hanya perlu logout
     logout(request)
     return JsonResponse({'status': 'success', 'message': 'Logout successful!'}, status=200)
 

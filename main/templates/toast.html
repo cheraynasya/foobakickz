@@ -2,17 +2,10 @@
     </div>
 
 <script>
-/**
- * Fungsi untuk menampilkan Toast Notification
- * @param {string} title - Judul notifikasi
- * @param {string} message - Isi pesan notifikasi
- * @param {('success'|'error'|'warning'|'normal'|'info')} type - Tipe notifikasi
- */
 function showToast(title, message, type = 'normal') {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
-    // Tentukan warna dan ikon berdasarkan tipe
     let bgColor, iconSvg, iconColor;
 
     switch (type) {
@@ -59,28 +52,23 @@ function showToast(title, message, type = 'normal') {
         </div>
     `;
 
-    // Pasang ID untuk transisi
     toast.id = 'toast';
     container.appendChild(toast);
 
-    // Animasi masuk
     setTimeout(() => {
         toast.classList.remove('translate-x-full', 'opacity-0');
     }, 100);
 
-    // Animasi keluar otomatis
     setTimeout(() => {
         hideToast(toast);
-    }, 5000); // Tampilkan selama 5 detik
+    }, 5000); 
 }
 
 function hideToast(toastElement) {
     if (!toastElement) return;
 
-    // Animasi keluar
     toastElement.classList.add('translate-x-full', 'opacity-0');
 
-    // Hapus dari DOM setelah animasi selesai
     setTimeout(() => {
         if (toastElement.parentNode) {
             toastElement.parentNode.removeChild(toastElement);
