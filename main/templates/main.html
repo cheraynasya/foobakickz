@@ -1,74 +1,357 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>FoobaKickz</title>
+{% endblock meta %}
+
 {% block content %}
-<div class="mb-6">
-  <h1 class="text-3xl font-bold text-navy">FoobaKickz</h1>
-  <p class="mt-1 text-gray-600">
-    {% if user.is_authenticated %}
-      Welcome, {{ user.username }}
-    {% else %}
-      Welcome, guest
-    {% endif %}
-  </p>
-  <p class="text-sm text-gray-500">Last login: {{ last_login }}</p>
+{% include 'modal.html' %} <div class="bg-gray-50 w-full min-h-screen">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Latest Product</h1>
+      <div class="flex space-x-3">
+        <button id="refreshButton" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors font-medium flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 0014.582 17L10 20.25V4.75L14.582 8a8.003 8.003 0 00-6.16-3.75"></path></svg>
+            Refresh List
+        </button>
+        <button onclick="openCreateModal()" class="px-4 py-2 bg-tealEgg text-white rounded-md hover:bg-tealEgg/90 transition-colors font-medium">
+          + Add New Product
+        </button>
+      </div>
+    </div>
 
-  <div class="mt-4">
-    {% if user.is_authenticated %}
-      <a href="{% url 'main:create_product' %}" 
-         class="bg-tealEgg hover:bg-navy text-white font-semibold px-5 py-2 rounded-lg shadow-md transition">
-         + Add Product
-      </a>
-    {% else %}
-      <a href="{% url 'main:login' %}" class="inline-block px-4 py-2 bg-gray-200 text-gray-700 rounded">Login to add</a>
-    {% endif %}
-  </div>
-</div>
-
-<!-- Filter Buttons -->
-<div class="mb-6 flex gap-3">
-  <a href="?filter=all" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700">All Products</a>
-  <a href="?filter=my" class="px-4 py-2 {% if user.is_authenticated %}bg-tealEgg hover:bg-navy text-white{% else %}bg-gray-100 text-gray-700{% endif %} rounded">My Products</a>
-</div>
-
-{% if not product_list %}
-  <div class="text-center p-10 bg-white rounded shadow">
-    <p class="text-gray-600">Belum ada produk.</p>
-  </div>
-{% else %}
-  <!-- GRID PRODUCT CARD -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-    {% for p in product_list %}
-      <article class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition transform hover:-translate-y-1">
-        
-        <!-- Thumbnail -->
-        {% if p.thumbnail %}
-          <img src="{{ p.thumbnail }}" alt="{{ p.name }}" class="w-full h-48 object-cover">
-        {% else %}
-          <div class="w-full h-48 bg-gray-200 flex items-center justify-center text-gray-500">
-            No Image
-          </div>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 bg-white rounded-lg border border-gray-200 p-4">
+      <div class="flex space-x-3 mb-4 sm:mb-0">
+        <button id="filter-all" class="bg-tealEgg text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-tealEgg/90">
+          All Products
+        </button>
+        {% if user.is_authenticated %}
+        <button id="filter-my" class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md font-medium transition-colors hover:bg-tealEgg hover:text-white">
+          My Products
+        </button>
         {% endif %}
+      </div>
+      {% if user.is_authenticated %}
+        <div class="text-sm text-gray-500">Last login: {{ last_login }}</div>
+      {% endif %}
+    </div>
 
-        <!-- Content -->
-        <div class="p-5">
-          <h3 class="font-bold text-xl text-navy mb-2">{{ p.name }}</h3>
-          <p class="text-lg font-semibold text-tealEgg">Rp {{ p.price }}</p>
-          <p class="text-sm text-gray-600">{{ p.category }}</p>
+    <div id="loading" class="bg-white rounded-lg border border-gray-200 p-12 text-center">
+      <svg class="animate-spin h-8 w-8 text-tealEgg inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+      <p class="text-gray-600 mt-3">Loading products...</p>
+    </div>
 
-          <p class="mt-3 text-sm text-gray-700">{{ p.description|truncatewords:20 }}</p>
-          <p class="text-xs text-gray-400 mt-2">Stock: {{ p.stock }}</p>
-          <p class="text-xs text-gray-400">Author: {% if p.user %}{{ p.user.username }}{% else %}Anonymous{% endif %}</p>
+    <div id="error" class="hidden"></div>
 
-          <!-- Buttons -->
-          <div class="mt-4 flex gap-3">
-            <a href="{% url 'main:show_product' p.id %}" class="bg-tealEgg hover:bg-navy text-white px-4 py-2 rounded-lg text-sm shadow">Detail</a>
-            {% if user.is_authenticated and p.user == user %}
-              <a href="{% url 'main:edit_product' p.id %}" class="px-3 py-2 bg-yellow-400 text-gray-800 rounded text-sm">Edit</a>
-              <a href="{% url 'main:delete_product' p.id %}" class="px-3 py-2 bg-red-500 text-white rounded text-sm">Delete</a>
-            {% endif %}
-          </div>
-        </div>
-      </article>
-    {% endfor %}
+    <div id="grid" class="hidden"></div>
+
+    <div id="empty" class="bg-white rounded-lg border border-gray-200 p-12 text-center hidden">
+      <div class="w-32 h-32 mx-auto mb-4">
+        <img src="{% static 'image/no-data.png' %}" alt="No product available" class="w-full h-full object-contain">
+      </div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+      <p class="text-gray-500 mb-6">Start adding your products to the inventory.</p>
+      <button onclick="openCreateModal()" class="inline-flex items-center px-4 py-2 bg-tealEgg text-white rounded-md hover:bg-tealEgg/90 transition-colors">
+        Add Product
+      </button>
+    </div>
   </div>
-{% endif %}
-{% endblock %}
+</div>
+
+<script>
+// --- KONFIGURASI DAN ELEMEN DOM ---
+const PRODUCT_API_ENDPOINT = "{% url 'main:show_json' %}";
+const CREATE_ENDPOINT = "{% url 'main:create_product_ajax' %}";
+const EDIT_ENDPOINT_BASE = "{% url 'main:edit_product_ajax' 0 %}".replace('/0/', '/');
+const DELETE_ENDPOINT_BASE = "{% url 'main:delete_product_ajax' 0 %}".replace('/0/', '/');
+const CURRENT_USER_ID = "{{ user.id|default_if_none:'' }}";
+const CSRF_TOKEN = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+const loadingSpinner = document.getElementById('loading');
+const errorMessage = document.getElementById('error');
+const emptyStateDisplay = document.getElementById('empty');
+const productGridContainer = document.getElementById('grid');
+const showAllProductsButton = document.getElementById('filter-all');
+const showMyProductsButton = document.getElementById('filter-my');
+const refreshButton = document.getElementById('refreshButton');
+
+// Modal Elements
+const crudModal = document.getElementById('crudModal');
+const crudModalContent = document.getElementById('crudModalContent');
+const modalTitle = document.getElementById('modalTitle');
+const productForm = document.getElementById('productForm');
+const productIdInput = document.getElementById('product_id');
+const submitButton = document.getElementById('submitButton');
+const deleteModal = document.getElementById('deleteModal');
+const deleteModalContent = document.getElementById('deleteModalContent');
+const deleteProductName = document.getElementById('deleteProductName');
+
+// State Variables
+let activeFilter = 'all';
+let allProductsData = [];
+let productToDeleteId = null;
+
+// --- UTILITY FUNCTIONS ---
+
+function showModal(modalElement, contentElement) {
+    modalElement.classList.remove('hidden');
+    // Force reflow for transition
+    void contentElement.offsetWidth;
+    contentElement.classList.remove('scale-95', 'opacity-0');
+    contentElement.classList.add('scale-100', 'opacity-100');
+}
+
+function closeModal() {
+    crudModalContent.classList.remove('scale-100', 'opacity-100');
+    crudModalContent.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        crudModal.classList.add('hidden');
+        // Reset form after closing
+        productForm.reset();
+        productIdInput.value = '';
+        modalTitle.textContent = 'Create New Product';
+        submitButton.textContent = 'Save Product';
+    }, 300);
+}
+
+function closeDeleteModal() {
+    deleteModalContent.classList.remove('scale-100', 'opacity-100');
+    deleteModalContent.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        deleteModal.classList.add('hidden');
+        productToDeleteId = null;
+    }, 300);
+}
+
+function openCreateModal() {
+    modalTitle.textContent = 'Create New Product';
+    submitButton.textContent = 'Create Product';
+    showModal(crudModal, crudModalContent);
+}
+
+function openEditModal(product) {
+    modalTitle.textContent = `Edit Product: ${product.fields.name}`;
+    submitButton.textContent = 'Update Product';
+    
+    // Fill form
+    productIdInput.value = product.pk;
+    document.getElementById('name').value = product.fields.name;
+    document.getElementById('amount').value = product.fields.amount;
+    document.getElementById('description').value = product.fields.description;
+    
+    showModal(crudModal, crudModalContent);
+}
+
+function openDeleteModal(productId, productName) {
+    productToDeleteId = productId;
+    deleteProductName.textContent = productName;
+    showModal(deleteModal, deleteModalContent);
+}
+
+function updateFilterButtonsAppearance() {
+    if (!showAllProductsButton || !showMyProductsButton) return;
+    
+    // Helper function to set classes
+    const setClasses = (el, active) => {
+        const activeClasses = 'bg-tealEgg text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-tealEgg/90';
+        const inactiveClasses = 'bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md font-medium transition-colors hover:bg-tealEgg hover:text-white';
+        el.className = active ? activeClasses : inactiveClasses;
+    };
+
+    setClasses(showAllProductsButton, activeFilter === 'all');
+    if (showMyProductsButton) {
+        setClasses(showMyProductsButton, activeFilter === 'my');
+    }
+}
+
+function displayPageSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
+    loadingSpinner.classList.toggle('hidden', !showLoading);
+    errorMessage.classList.toggle('hidden', !showError);
+    emptyStateDisplay.classList.toggle('hidden', !showEmpty);
+    productGridContainer.classList.toggle('hidden', !showGrid);
+    
+    if (showGrid) {
+        productGridContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+    }
+}
+
+// --- RENDERING FUNCTIONS ---
+
+function buildProductCardElement(product) {
+    const pk = product.pk;
+    const name = product.fields.name;
+    const amount = product.fields.amount;
+    const description = product.fields.description;
+    const isOwner = CURRENT_USER_ID && Number(CURRENT_USER_ID) === Number(product.fields.user_id);
+    const dateAdded = new Date(product.fields.date_added).toLocaleDateString();
+
+    const cardHtml = `
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 flex flex-col h-full">
+            <div class="flex-1">
+                <h3 class="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">${name}</h3>
+                <p class="text-lg font-bold text-tealEgg mb-3">Amount: ${amount}</p>
+                <p class="text-gray-600 text-sm line-clamp-3 mb-4">${description}</p>
+            </div>
+            
+            <div class="pt-4 border-t border-gray-100">
+                <p class="text-xs text-gray-500 mb-2">Added by: ${product.fields.user} on ${dateAdded}</p>
+                <div class="flex justify-end space-x-2">
+                    ${isOwner ? `
+                        <button onclick="openEditModal({pk: ${pk}, fields: {name: '${name.replace(/'/g, "\\'")}', amount: ${amount}, description: '${description.replace(/'/g, "\\'")}'}})" 
+                                class="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium">
+                            Edit
+                        </button>
+                        <button onclick="openDeleteModal(${pk}, '${name.replace(/'/g, "\\'")}')" 
+                                class="text-sm text-red-600 hover:text-red-700 transition-colors font-medium">
+                            Delete
+                        </button>
+                    ` : `<span class="text-sm text-gray-400">Not Editable</span>`}
+                </div>
+            </div>
+        </div>
+    `;
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = cardHtml.trim();
+    return wrapper.firstChild;
+}
+
+function renderAllProductCards(productItems) {
+    productGridContainer.innerHTML = '';
+    productItems.forEach(productItem => {
+        const cardElement = buildProductCardElement(productItem);
+        productGridContainer.appendChild(cardElement);
+    });
+}
+
+function filterAndDisplayProducts() {
+    updateFilterButtonsAppearance();
+    
+    const filteredProducts = activeFilter === 'all' 
+        ? allProductsData 
+        : allProductsData.filter(product => Number(product.fields.user_id) === Number(CURRENT_USER_ID));
+    
+    if (filteredProducts.length === 0) {
+        displayPageSection({ showEmpty: true });
+    } else {
+        renderAllProductCards(filteredProducts);
+        displayPageSection({ showGrid: true });
+    }
+}
+
+// --- AJAX/FETCH FUNCTIONS ---
+
+async function fetchProductsFromServer() {
+    try {
+        displayPageSection({ showLoading: true });
+        
+        const response = await fetch(PRODUCT_API_ENDPOINT, {
+            headers: { 'Accept': 'application/json' },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch product data from server');
+        }
+
+        const productData = await response.json();
+        allProductsData = productData || [];
+        
+        filterAndDisplayProducts();
+    } catch (error) {
+        console.error('Error loading products:', error);
+        errorMessage.innerHTML = `<div class="p-4 bg-red-100 text-red-800 rounded-lg">Failed to load products: ${error.message}</div>`;
+        displayPageSection({ showError: true });
+    }
+}
+
+// --- CRUD AJAX HANDLERS ---
+
+async function handleFormSubmit(event) {
+    event.preventDefault();
+    const isUpdate = !!productIdInput.value;
+    const endpoint = isUpdate ? `${EDIT_ENDPOINT_BASE}${productIdInput.value}/` : CREATE_ENDPOINT;
+    const formData = new FormData(productForm);
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF_TOKEN },
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            closeModal();
+            showToast('Success', data.message, 'success');
+            await fetchProductsFromServer(); // Refresh list
+        } else {
+            const errorMessage = data.message || 'Operation failed.';
+            showToast('Error', errorMessage, 'error');
+            console.error('Form Submission Error:', data.errors || data.message);
+        }
+    } catch (error) {
+        showToast('Error', 'Network error or server connection failed.', 'error');
+        console.error('Network Error:', error);
+    }
+}
+
+async function confirmDeleteProduct() {
+    if (!productToDeleteId) return;
+
+    const endpoint = `${DELETE_ENDPOINT_BASE}${productToDeleteId}/`;
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST', // Menggunakan POST untuk delete di Django
+            headers: { 'X-CSRFToken': CSRF_TOKEN },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            closeDeleteModal();
+            showToast('Success', data.message, 'success');
+            await fetchProductsFromServer(); // Refresh list
+        } else {
+            showToast('Error', data.message || 'Deletion failed.', 'error');
+            console.error('Deletion Error:', data.message);
+        }
+    } catch (error) {
+        showToast('Error', 'Network error or server connection failed.', 'error');
+        console.error('Network Error:', error);
+    }
+}
+
+
+function initializeProductPage() {
+    showAllProductsButton?.addEventListener('click', () => {
+        activeFilter = 'all';
+        filterAndDisplayProducts();
+    });
+
+    showMyProductsButton?.addEventListener('click', () => {
+        if (!CURRENT_USER_ID) {
+            showToast('Warning', 'Please log in to see your products.', 'warning');
+            return;
+        }
+        activeFilter = 'my';
+        filterAndDisplayProducts();
+    });
+    
+    refreshButton?.addEventListener('click', () => {
+        fetchProductsFromServer();
+        showToast('Info', 'Product list refreshed.', 'normal');
+    });
+
+    fetchProductsFromServer();
+}
+
+initializeProductPage();
+</script>
+{% endblock content %}

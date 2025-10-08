@@ -1,79 +1,73 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block meta %}
 <title>Register - FoobaKickz</title>
 {% endblock meta %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center py-12">
-  <div class="w-full max-w-3xl mx-auto px-6">
-    <div class="bg-[#042A4A] rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
-      <!-- Left: hero -->
-      <div class="hidden md:flex flex-col justify-center px-8 py-10 gap-4">
-        <h2 class="text-3xl font-extrabold text-white">Join FoobaKickz!</h2>
-      </div>
-
-      <!-- Right: form -->
-      <div class="bg-white p-8 md:p-10">
-        <div class="mb-6 text-center">
-          <a href="{% url 'main:show_main' %}" class="inline-block text-2xl font-bold text-[#042A4A]">
-            <span class="text-[#0ea5a4]">Fooba</span>Kickz
-          </a>
-          <p class="text-sm text-gray-500 mt-2">Create your account</p>
-        </div>
-
-        <div class="form-style">
-          {% if messages %}
+<div class="max-w-md mx-auto p-6 bg-white shadow-xl rounded-xl">
+    <h2 class="text-2xl font-bold text-navy mb-6 text-center">Register</h2>
+    
+    <form id="registerForm">
+        {% csrf_token %}
+        
+        {% for field in form %}
             <div class="mb-4">
-              {% for message in messages %}
-                <div class="px-4 py-2 rounded text-sm {% if message.tags == 'success' %}bg-green-50 text-green-700{% else %}bg-red-50 text-red-700{% endif %}">
-                  {{ message }}
-                </div>
-              {% endfor %}
+                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ error }}</p>
+                {% endfor %}
             </div>
-          {% endif %}
+        {% endfor %}
 
-          {% if form.non_field_errors %}
-            <div class="mb-4">
-              {% for err in form.non_field_errors %}
-                <div class="px-3 py-2 rounded bg-red-50 text-red-700 text-sm">{{ err }}</div>
-              {% endfor %}
-            </div>
-          {% endif %}
-
-          <form method="POST" novalidate>
-            {% csrf_token %}
-            <div class="space-y-4">
-              {{ form.username.label_tag }}
-              {{ form.username }}
-              {% for e in form.username.errors %}
-                <p class="text-red-600 text-sm mt-1">{{ e }}</p>
-              {% endfor %}
-
-              {{ form.password1.label_tag }}
-              {{ form.password1 }}
-              {% for e in form.password1.errors %}
-                <p class="text-red-600 text-sm mt-1">{{ e }}</p>
-              {% endfor %}
-
-              {{ form.password2.label_tag }}
-              {{ form.password2 }}
-              {% for e in form.password2.errors %}
-                <p class="text-red-600 text-sm mt-1">{{ e }}</p>
-              {% endfor %}
-            </div>
-
-            <div class="mt-6 flex items-center justify-between">
-              <a href="{% url 'main:login' %}" class="text-sm text-gray-500 hover:underline">Already have an account?</a>
-              <button type="submit" class="bg-[#042A4A] hover:bg-[#032235] text-white px-4 py-2 rounded-md font-semibold">Create account</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- small footer note -->
-    <p class="text-xs text-gray-400 text-center mt-4">By creating an account you agree to our terms.</p>
-  </div>
+        <button type="submit" class="w-full py-2 px-4 bg-tealEgg text-white font-semibold rounded-md hover:bg-tealEgg/90 transition-colors">
+            Register
+        </button>
+    </form>
+    
+    <p class="mt-4 text-center text-sm text-gray-600">
+        Already have an account? 
+        <a href="{% url 'main:login' %}" class="text-tealEgg hover:underline font-medium">Login here</a>
+    </p>
 </div>
-{% endblock %}
+
+<script>
+    const registerForm = document.getElementById('registerForm');
+    const CSRF_TOKEN = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(registerForm);
+        const endpoint = "{% url 'main:register_ajax' %}";
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': CSRF_TOKEN
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showToast('Success!', data.message, 'success');
+                setTimeout(() => {
+                    window.location.href = "{% url 'main:login' %}";
+                }, 1500);
+            } else {
+                showToast('Registration Failed', data.message || 'Please check form errors.', 'error');
+                console.error('AJAX Register Error:', data.errors || data.message);
+                // Tambahkan logika untuk menampilkan errors pada field spesifik jika Anda mengimplementasikannya.
+            }
+        } catch (error) {
+            showToast('Error', 'Network error. Could not connect to the server.', 'error');
+            console.error('Network Error:', error);
+        }
+    });
+</script>
+{% endblock content %}

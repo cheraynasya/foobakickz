@@ -1,65 +1,73 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block meta %}
 <title>Login - FoobaKickz</title>
 {% endblock meta %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center py-12">
-  <div class="w-full max-w-2xl mx-auto px-6">
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
-      <!-- Left: brand / promo -->
-      <div class="hidden md:flex flex-col justify-center px-8 py-10 bg-gradient-to-br from-[#042A4A] to-[#06314a] text-white gap-4">
-        <h2 class="text-3xl font-extrabold">Welcome back!</h2>
-        <a href="{% url 'main:register' %}" class="mt-4 inline-block bg-[#0ea5a4] text-[#042A4A] px-4 py-2 rounded font-semibold">Create account</a>
-      </div>
-
-      <!-- Right: form -->
-      <div class="p-8 md:p-10">
-        <div class="mb-6 text-center">
-          <a href="{% url 'main:show_main' %}" class="inline-block text-2xl font-bold text-[#042A4A]">
-            <span class="text-[#0ea5a4]">Fooba</span>Kickz
-          </a>
-          <p class="text-sm text-gray-500 mt-2">Sign in to your account</p>
+<div class="max-w-md mx-auto p-6 bg-white shadow-xl rounded-xl">
+    <h2 class="text-2xl font-bold text-navy mb-6 text-center">Login</h2>
+    
+    <form id="loginForm">
+        {% csrf_token %}
+        
+        <div class="mb-4">
+            <label for="id_username" class="block text-sm font-medium text-gray-700">Username</label>
+            <input type="text" name="username" id="id_username" required 
+                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:border-tealEgg focus:ring-tealEgg">
         </div>
-
-        <div class="form-style">
-          {% if messages %}
-            <div class="mb-4">
-              {% for message in messages %}
-                <div class="px-4 py-2 rounded text-sm {% if message.tags == 'success' %}bg-green-50 text-green-700{% else %}bg-red-50 text-red-700{% endif %}">
-                  {{ message }}
-                </div>
-              {% endfor %}
-            </div>
-          {% endif %}
-
-          <form method="POST">
-            {% csrf_token %}
-            <div class="space-y-4">
-              {{ form.username.label_tag }}
-              {{ form.username }}
-              {% for e in form.username.errors %}
-                <p class="text-red-600 text-sm mt-1">{{ e }}</p>
-              {% endfor %}
-
-              {{ form.password.label_tag }}
-              {{ form.password }}
-              {% for e in form.password.errors %}
-                <p class="text-red-600 text-sm mt-1">{{ e }}</p>
-              {% endfor %}
-            </div>
-
-            <div class="mt-6 flex items-center justify-between">
-              <a href="#" class="text-sm text-gray-500 hover:underline">Forgot password?</a>
-              <button type="submit" class="bg-[#042A4A] hover:bg-[#032235] text-white px-4 py-2 rounded-md font-semibold">Login</button>
-            </div>
-          </form>
-
-          <p class="text-sm text-center text-gray-500 mt-4">Don't have an account yet? <a href="{% url 'main:register' %}" class="text-[#0ea5a4] font-medium hover:underline">Register Now</a></p>
+        
+        <div class="mb-6">
+            <label for="id_password" class="block text-sm font-medium text-gray-700">Password</label>
+            <input type="password" name="password" id="id_password" required 
+                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:border-tealEgg focus:ring-tealEgg">
         </div>
-      </div>
-    </div>
-  </div>
+        
+        <button type="submit" class="w-full py-2 px-4 bg-tealEgg text-white font-semibold rounded-md hover:bg-tealEgg/90 transition-colors">
+            Login
+        </button>
+    </form>
+    
+    <p class="mt-4 text-center text-sm text-gray-600">
+        Don't have an account? 
+        <a href="{% url 'main:register' %}" class="text-tealEgg hover:underline font-medium">Register here</a>
+    </p>
 </div>
-{% endblock %}
+
+<script>
+    const loginForm = document.getElementById('loginForm');
+    const CSRF_TOKEN = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(loginForm);
+        const endpoint = "{% url 'main:login_ajax' %}";
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': CSRF_TOKEN
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showToast('Welcome Back!', `Logged in as ${data.username}.`, 'success');
+                setTimeout(() => {
+                    window.location.href = "{% url 'main:show_main' %}";
+                }, 50); // Delay 50ms
+            } else {
+                showToast('Login Failed', data.message || 'Invalid credentials.', 'error');
+            }
+        } catch (error) {
+            showToast('Error', 'Network error. Could not connect to the server.', 'error');
+            console.error('AJAX Login Error:', error);
+        }
+    });
+</script>
+{% endblock content %}

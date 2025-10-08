@@ -7,34 +7,40 @@
   {% block meta %}{% endblock %}
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          navy: "#06283D",       
-          tealEgg: "#0fb3a3",    
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: "#06283D",      
+            tealEgg: "#0fb3a3",    
+          }
         }
       }
     }
-  }
-</script>
+  </script>
   <link rel="stylesheet" href="{% static 'css/global.css' %}">
   <title>FoobaKickz</title>
 </head>
 <body class="bg-navy/5 min-h-screen text-navy">
   {% include 'navbar.html' %}
   <main class="max-w-6xl mx-auto p-6 pt-20">
-    {% if messages %}
-      <div class="mb-4">
-        {% for message in messages %}
-          <div class="p-3 rounded {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
-            {{ message }}
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-
     {% block content %}{% endblock %}
   </main>
+
+  {% include 'toast.html' %}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', function() {
+                // Toggle class 'hidden' untuk menampilkan/menyembunyikan menu
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+    });
+  </script>
 </body>
 </html>
