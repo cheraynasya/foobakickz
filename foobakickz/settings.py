@@ -148,3 +148,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = [
     "https://cheryl-raynasya-foobakickz.pbp.cs.ui.ac.id/"
 ]
+
