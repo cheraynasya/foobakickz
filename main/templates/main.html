@@ -1,32 +1,493 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>FoobaKickz - Katalog Item</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+{% endblock meta %}
 
 {% block content %}
-  <h1>FoobaKickz</h1>
+<div class="bg-gray-50 w-full pt-16 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <div class="mb-8 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Katalog Produk FoobaKickz</h1>
+                <p class="text-gray-600">Penuhi Kebutuhan Olahraga Terbaik Anda</p>
+            </div>
+            
+            {% if user.is_authenticated %}
+            <button onclick="showModal('create')" class="inline-flex items-center px-4 py-2 bg-purple-600 text-white font-semibold rounded-md hover:bg-purple-700 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Tambah Item (AJAX)
+            </button>
+            {% endif %}
+        </div>
 
-  <h4>NPM: </h4>
-  <p>{{ npm }}</p> 
-  <h4>Name: </h4>
-  <p>{{ name }}</p> 
-  <h4>Class: </h4>
-  <p>{{ class }}</p> 
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 bg-white rounded-lg border border-gray-200 p-4">
+            <div class="flex space-x-3 mb-4 sm:mb-0">
+                <button id="filter-all" class="bg-purple-600 text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-purple-700">
+                    Semua Item
+                </button>
+                <button id="filter-my" class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md font-medium transition-colors hover:bg-purple-600 hover:text-white">
+                    Item Saya
+                </button>
+            </div>
+            {% if user.is_authenticated %}
+                <div class="text-sm text-gray-500">Last login: {{ last_login }}</div>
+            {% endif %}
+        </div>
 
-  <a href="{% url 'main:create_product' %}"><button>+ Add Product</button></a>
-<hr>
+        <div id="loading" class="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <svg class="animate-spin h-8 w-8 text-purple-600 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            <p class="text-gray-600 mt-3">Memuat Katalog...</p>
+        </div>
 
-{% if not product_list %}
-<p>Belum ada produk.</p>
-{% else %}
-  {% for p in product_list %}
-    <div>
-      <h2>{{ p.name }}</h2>
-      <p>Rp {{ p.price }} | {{ p.category }} {% if p.is_featured %}| Featured{% endif %}</p>
-      {% if p.thumbnail %}<img src="{{ p.thumbnail }}" alt="{{ p.name }}" width="150">{% endif %}
-      <p>{{ p.description|truncatewords:20 }}...</p>
-      <a href="{% url 'main:show_product' p.id %}"><button>Detail</button></a>
-      <a href="{% url 'main:show_json_by_id' p.id %}">JSON</a> |
-      <a href="{% url 'main:show_xml_by_id' p.id %}">XML</a>
+        <div id="error" class="bg-white rounded-lg border border-gray-200 p-12 text-center hidden">
+            <div class="text-red-500 text-5xl mb-4">⚠️</div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Gagal memuat item</h3>
+            <p class="text-gray-500">Terjadi kesalahan saat mengambil data dari server.</p>
+        </div>
+
+        <div id="grid" class="hidden"></div>
+
+        <div id="empty" class="bg-white rounded-lg border border-gray-200 p-12 text-center hidden">
+            <div class="w-32 h-32 mx-auto mb-4">
+                <div class="text-gray-400 text-7xl">🚫</div>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Katalog Kosong</h3>
+            <p class="text-gray-500 mb-6">Jadilah yang pertama membagikan katalog item Anda.</p>
+            <button onclick="showModal('create')" class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                Tambah Item
+            </button>
+        </div>
     </div>
-    <hr>
-  {% endfor %}
-{% endif %}
-{% endblock %}
+</div>
+
+<div id="toast-container" class="fixed top-5 right-5 z-[100]"></div>
+
+{% include 'modal.html' %} 
+
+<script>
+   
+    let modalMode = 'create'; 
+
+    function showToast(title, message = '', type = 'info', duration = 3000) {
+        console.log(`[Toast | ${type.toUpperCase()}] ${title}: ${message}`);
+        
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const colorMap = { 'success': 'bg-green-500', 'error': 'bg-red-500', 'info': 'bg-blue-500', };
+        const bgColor = colorMap[type] || 'bg-gray-500';
+
+        const toast = document.createElement('div');
+        toast.className = `p-4 mb-2 text-white rounded-lg shadow-lg ${bgColor} transform translate-x-full transition-all duration-300`;
+        toast.innerHTML = `<strong class="block text-sm font-bold">${title}</strong>${message ? `<span class="block text-xs">${message}</span>` : ''}`;
+
+        container.appendChild(toast);
+        setTimeout(() => { toast.classList.remove('translate-x-full'); }, 10); 
+        setTimeout(() => {
+            toast.classList.add('opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
+
+    function hideModal() {
+        const modal = document.getElementById('crudModal');
+        const modalContent = document.getElementById('crudModalContent');
+        if (!modal) return;
+        modalContent.classList.remove('opacity-100', 'scale-100');
+        modalContent.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); }, 150); 
+    }
+
+    function showModal(mode = 'create', productData = {}) {
+        modalMode = mode;
+        const modal = document.getElementById('crudModal');
+        const modalContent = document.getElementById('crudModalContent');
+        const title = document.getElementById('modalTitle');
+        const subtitle = document.getElementById('modalSubtitle');
+        const submitBtn = document.getElementById('submitProduct');
+        const form = document.getElementById('productForm');
+
+        if (!modal) return;
+        form.reset(); 
+
+        if (mode === 'edit') {
+            title.textContent = 'Edit Item: ' + productData.name; 
+            subtitle.textContent = 'Perbarui detail item Anda'; 
+            submitBtn.textContent = 'Simpan Perubahan';
+            
+            document.getElementById('productId').value = productData.id;
+            document.getElementById('name').value = productData.name;
+            document.getElementById('price').value = productData.price;
+            document.getElementById('stock').value = productData.stock;
+            document.getElementById('category').value = productData.category;
+            document.getElementById('description').value = productData.description;
+            document.getElementById('thumbnail').value = productData.thumbnail;
+            document.getElementById('is_featured').checked = productData.is_featured;
+        } else {
+            title.textContent = 'Tambah Item Baru';
+            subtitle.textContent = 'Tambahkan ke Katalog Anda'; 
+            submitBtn.textContent = 'Publish Item'; 
+            document.getElementById('productId').value = '';
+            document.getElementById('is_featured').checked = false;
+            document.getElementById('stock').value = 0; 
+        }
+
+        modal.classList.remove('hidden'); 
+        setTimeout(() => {
+            modalContent.classList.remove('opacity-0', 'scale-95');
+            modalContent.classList.add('opacity-100', 'scale-100');
+        }, 50); 
+    }
+
+    async function addProductEntry() {
+        console.log('--- addProductEntry Fired! ---');
+        const isEditing = modalMode === 'edit';
+        const form = document.querySelector('#productForm');
+        const formData = new FormData(form);
+        
+        let url = isEditing 
+            ? form.dataset.editUrl.replace('0', formData.get('productId'))
+            : form.dataset.createUrl; 
+        let action = isEditing ? 'diperbarui' : 'ditambahkan';
+        let actionVerb = isEditing ? 'Memperbarui' : 'Mem-publish';
+        
+        if (!formData.get('is_featured')) {
+            formData.append('is_featured', 'off');
+        }
+
+        try {
+            const submitBtn = document.getElementById('submitProduct');
+            submitBtn.disabled = true;
+            submitBtn.textContent = `${actionVerb}...`; 
+
+            const response = await fetch(url, {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!response.ok) {
+                // PERUBAHAN DI SINI: Gagal ${action}. -> Gagal ${action} item.
+                let errorMessageText = `Gagal ${action} item. Cek detail di Console.`;
+                let errorDetails = '';
+                
+                try {
+                    const errorJson = await response.json();
+                    
+                    if (response.status === 400) {
+                        errorMessageText = `Gagal: Ada kesalahan input.`;
+                        const firstErrorKey = Object.keys(errorJson)[0];
+                        errorDetails = `${firstErrorKey}: ${errorJson[firstErrorKey].join(' ')}`;
+                    } else if (response.status === 403) {
+                         errorMessageText = `Gagal: Anda tidak memiliki izin (403 Forbidden).`;
+                    } else {
+                        errorDetails = `Status: ${response.status}`;
+                    }
+
+                } catch (e) {
+                    errorDetails = await response.text();
+                    console.error("Raw Error Response:", errorDetails);
+                }
+                
+                throw new Error(errorMessageText, { cause: errorDetails });
+            }
+
+            form.reset();
+            hideModal();
+            
+            // PERUBAHAN DI SINI: Produk berhasil ${action}! -> Item berhasil ${action}!
+            showToast(`Item berhasil ${action}!`, '', 'success');
+            document.dispatchEvent(new CustomEvent('productUpdated')); 
+
+        } catch (error) {
+            console.error('AJAX Error:', error.cause || error.message);
+            showToast(error.message, error.cause || 'Periksa server log Django Anda.', 'error', 7000);
+        } finally {
+            const submitBtn = document.getElementById('submitProduct');
+            submitBtn.disabled = false;
+            submitBtn.textContent = isEditing ? 'Simpan Perubahan' : 'Publish Item'; 
+        }
+    }
+
+    // Event Listener DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById("productForm");
+        const modal = document.getElementById('crudModal');
+        const submitBtn = document.getElementById('submitProduct');
+        
+        if (form) {
+            form.addEventListener("submit", function(e) {
+                console.log('Form Submit Event Handled!'); 
+                e.preventDefault(); 
+                addProductEntry();
+            });
+        }
+
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target.id === 'crudModal') {
+                    hideModal();
+                }
+            });
+        }
+        
+        if (submitBtn && submitBtn.textContent.trim() === '') {
+             // PERUBAHAN DI SINI: Publish Produk -> Publish Item
+             submitBtn.textContent = 'Publish Item';
+        }
+    });
+
+    // Configuration
+    const PRODUCT_API_ENDPOINT = "{% url 'main:show_json' %}";
+    const CURRENT_USER_ID = "{{ user.id|default_if_none:'' }}";
+
+    // DOM Elements
+    const loadingSpinner = document.getElementById('loading');
+    const errorMessage = document.getElementById('error');
+    const emptyStateDisplay = document.getElementById('empty');
+    const productGridContainer = document.getElementById('grid');
+    const showAllProductsButton = document.getElementById('filter-all');
+    const showMyProductsButton = document.getElementById('filter-my');
+
+    // State Variables
+    let activeFilter = 'all';
+    let allItemsData = []; 
+
+    // Show/hide page sections
+    function displayPageSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
+        loadingSpinner.classList.toggle('hidden', !showLoading);
+        errorMessage.classList.toggle('hidden', !showError);
+        emptyStateDisplay.classList.toggle('hidden', !showEmpty);
+        productGridContainer.classList.toggle('hidden', !showGrid);
+        
+        if (showGrid) {
+            productGridContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+        }
+    }
+
+    // Update filter button appearance
+    function updateFilterButtonsAppearance() {
+        if (!showAllProductsButton || !showMyProductsButton) return;
+        
+        if (activeFilter === 'all') {
+            showAllProductsButton.className = 'bg-purple-600 text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-purple-700';
+            showMyProductsButton.className = 'bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md font-medium transition-colors hover:bg-purple-600 hover:text-white';
+        } else {
+            showMyProductsButton.className = 'bg-purple-600 text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-purple-700';
+            showAllProductsButton.className = 'bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md font-medium transition-colors hover:bg-purple-600 hover:text-white';
+        }
+    }
+
+    // Create product card element
+    function buildProductCardElement(item) {
+        const articleElement = document.createElement('article');
+        articleElement.className = 'bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-300 overflow-hidden flex flex-col h-full';
+
+        // XSS Protection (DOMPurify)
+        const productId = DOMPurify.sanitize(item.id);
+        const name = DOMPurify.sanitize(item.name);
+        const description = DOMPurify.sanitize(item.description);
+        const price = DOMPurify.sanitize(item.price);
+        const thumbnail = DOMPurify.sanitize(item.thumbnail);
+        const category = DOMPurify.sanitize(item.category);
+        const isFeatured = item.is_featured;
+        const stock = DOMPurify.sanitize(item.stock);
+        const views = DOMPurify.sanitize(item.views);
+        const username = DOMPurify.sanitize(item.user_username || 'Anonymous');
+        
+        // Formatting
+        const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
+        const formattedDate = new Date(item.created_at).toLocaleDateString('id-ID', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+        
+        // Endpoints
+        const detailLink = `{% url 'main:show_product' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', productId);
+
+        // HTML Components
+        const thumbnailHtml = DOMPurify.sanitize(
+            item.thumbnail 
+                ? `<img src='${thumbnail}' alt='${name}' class='w-full h-full object-cover'>` 
+                : `<div class='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500 font-bold'>No Image</div>`
+        );
+        
+        const featuredBadge = isFeatured 
+            ? DOMPurify.sanitize(`<span class='inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800'>Featured</span>`) 
+            : '';
+        const stockBadge = stock > 0
+            ? DOMPurify.sanitize(`<span class='inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800'>In Stock (${stock})</span>`)
+            : DOMPurify.sanitize(`<span class='inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800'>Out of Stock</span>`);
+
+        const editDeleteButtons = CURRENT_USER_ID && Number(CURRENT_USER_ID) === Number(item.user_id)
+            ? `<div class='flex space-x-2'>
+                <button data-product-id='${productId}' class='text-gray-600 hover:text-blue-700 text-sm transition-colors font-medium btn-edit-item'>Edit</button>
+                <button data-product-id='${productId}' class='text-red-600 hover:text-red-700 text-sm transition-colors font-medium btn-delete-item'>Delete</button>
+              </div>`
+            : `<p class="text-sm text-gray-700 font-bold">${username}</p>`; 
+
+        const completeCardHtml = `
+            <div class="aspect-[16/9] relative overflow-hidden">
+              ${thumbnailHtml}
+              <div class="absolute top-3 left-3">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-900 text-white">${category}</span>
+              </div>
+              <div class="absolute top-3 right-3 flex space-x-2">
+                ${featuredBadge}
+                ${stockBadge}
+              </div>
+            </div>
+            <div class="p-5 flex flex-col flex-1">
+              <div class="flex items-center text-sm text-gray-500 mb-3 justify-between">
+                <time>${formattedDate}</time>
+                <span>${views} views</span>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 mb-1 line-clamp-2 leading-tight">
+                <a href="${detailLink}" class="hover:text-purple-600 transition-colors">${name}</a>
+              </h3>
+              <p class="text-lg font-semibold text-purple-600 mb-3">${formattedPrice}</p>
+              <p class="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">${description}</p>
+              <div class="pt-4 border-t border-gray-100 flex items-center justify-between mt-auto">
+                <a href="${detailLink}" class="text-purple-600 hover:text-purple-700 font-medium text-sm transition-colors">Lihat Detail</a>
+                ${editDeleteButtons}
+              </div>
+            </div>
+        `;
+
+        articleElement.innerHTML = completeCardHtml;
+        return articleElement;
+    }
+
+    // Render all product cards
+    function renderAllProductCards(productItems) {
+        productGridContainer.innerHTML = '';
+        productItems.forEach(productItem => {
+            const cardElement = buildProductCardElement(productItem);
+            productGridContainer.appendChild(cardElement);
+        });
+    }
+
+    // Filter and display products
+    function filterAndDisplayProducts() {
+        updateFilterButtonsAppearance();
+        
+        const filteredProducts = activeFilter === 'all' 
+            ? allItemsData 
+            : allItemsData.filter(product => Number(product.user_id) === Number(CURRENT_USER_ID));
+        
+        if (filteredProducts.length === 0) {
+            displayPageSection({ showEmpty: true, showLoading: false, showError: false, showGrid: false });
+        } else {
+            renderAllProductCards(filteredProducts);
+            displayPageSection({ showGrid: true, showLoading: false, showError: false, showEmpty: false });
+        }
+    }
+
+    // Fetch products data from server
+    async function fetchProductsFromServer() {
+        try {
+            displayPageSection({ showLoading: true, showGrid: false, showError: false, showEmpty: false });
+            
+            const response = await fetch(PRODUCT_API_ENDPOINT, {
+                headers: { 'Accept': 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch item data from server');
+            }
+
+            const productData = await response.json();
+            allItemsData = productData || []; 
+            
+            filterAndDisplayProducts();
+        } catch (error) {
+            console.error('Error loading items:', error);
+            showToast('Gagal memuat data item.', error.message, 'error', 5000); 
+        }
+    }
+
+    // Event handlers
+    function handleShowAllProductsClick() {
+        activeFilter = 'all';
+        filterAndDisplayProducts();
+    }
+
+    function handleShowMyProductsClick() {
+        activeFilter = 'my';
+        filterAndDisplayProducts();
+    }
+
+    // Fungsi untuk menghapus produk
+    async function deleteProductEntry(productId) {
+        const url = `{% url 'main:delete_product_entry_ajax' 0 %}`.replace('0', productId);
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        try {
+            const response = await fetch(url, {
+                method: "POST", 
+                headers: { 'X-CSRFToken': csrfToken }
+            });
+
+            if (response.status === 403) throw new Error('Anda tidak memiliki izin untuk menghapus item ini.');
+            if (!response.ok) throw new Error('Gagal menghapus item dari server.');
+
+            showToast('Item berhasil dihapus!', '', 'success'); 
+            fetchProductsFromServer(); 
+        } catch (error) {
+            showToast(error.message, '', 'error');
+            console.error('Delete error:', error);
+        }
+    }
+
+    // Event Delegation untuk Edit/Delete Button
+    productGridContainer.addEventListener('click', async function(e) {
+        const productId = e.target.dataset.productId;
+        if (!productId) return;
+
+        if (e.target.classList.contains('btn-edit-item')) { 
+            const DETAIL_ENDPOINT = `{% url 'main:show_json_by_id' 0 %}`.replace('0', productId);
+
+            try {
+                const response = await fetch(DETAIL_ENDPOINT);
+                if (!response.ok) throw new Error('Gagal mengambil data detail item.'); 
+
+                const productDataRaw = await response.json();
+                const productData = productDataRaw[0] ? productDataRaw[0].fields : productDataRaw; 
+                productData.id = productId; 
+
+                showModal('edit', productData); 
+            } catch (error) {
+                showToast('Error', 'Gagal memuat data item untuk edit.', 'error'); 
+                console.error('Edit error:', error);
+            }
+        } else if (e.target.classList.contains('btn-delete-item')) { 
+            if (confirm("Apakah Anda yakin ingin menghapus item ini? Aksi ini tidak dapat dibatalkan.")) { 
+                await deleteProductEntry(productId);
+            }
+        }
+    });
+
+    // Event listener untuk refresh setelah CREATE/UPDATE dari Modal
+    document.addEventListener('productUpdated', function() {
+        fetchProductsFromServer();
+    });
+
+    // Initialize page
+    function initializeProductPage() {
+        showAllProductsButton.addEventListener('click', handleShowAllProductsClick);
+        showMyProductsButton.addEventListener('click', handleShowMyProductsClick);
+        
+        fetchProductsFromServer();
+    }
+
+    // Start application
+    initializeProductPage();
+</script>
+{% endblock content %}

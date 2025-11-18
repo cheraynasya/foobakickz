@@ -1,0 +1,108 @@
+{% load static %}
+
+<nav id="navbar" class="bg-white shadow-lg fixed w-full top-0 z-40 border-b border-purple-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+            
+            <div class="flex-shrink-0">
+                <a href="{% url 'main:show_main' %}" class="text-3xl font-extrabold text-purple-700 tracking-wider">
+                    Fooba<span class="text-black">Kickz</span>
+                </a>
+            </div>
+
+            <div class="flex-1 hidden sm:flex justify-center">
+                <div class="flex space-x-8 text-base items-center">
+                    <a href="{% url 'main:show_main' %}" class="text-gray-600 hover:text-purple-700 transition-colors font-semibold">Home</a>
+                    
+                    <a href="{% url 'main:show_main' %}" class="text-gray-600 hover:text-purple-700 transition-colors font-semibold">Apparel</a>
+                    <a href="{% url 'main:show_main' %}" class="text-gray-600 hover:text-purple-700 transition-colors font-semibold">Shoes</a>
+                    
+                    {% if user.is_authenticated %}
+                        <a onclick="showModal('create')" 
+                            class="cursor-pointer text-gray-600 hover:text-purple-700 transition-colors font-semibold flex items-center space-x-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span>Add Item</span> 
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="hidden sm:flex items-center space-x-4 flex-shrink-0">
+                {% if user.is_authenticated %}
+                    <div class="text-gray-700 text-sm hidden lg:block text-right leading-tight">
+                        Halo, <span class="font-bold text-purple-600">{{ user.username }}</span> !
+                        <p class="text-xs text-gray-500">{{ npm|default:'' }} - {{ class|default:'' }}</p>
+                    </div>
+                    <a href="{% url 'main:logout' %}" 
+                        class="px-4 py-2 text-sm font-medium rounded-full text-white bg-red-500 hover:bg-red-600 transition-colors shadow-md">
+                        Logout
+                    </a>
+                {% else %}
+                    <a href="{% url 'main:register' %}" 
+                        class="px-3 py-2 text-sm font-medium rounded-md text-purple-700 border border-purple-700 hover:bg-purple-50 transition-colors">
+                        Register
+                    </a>
+                    <a href="{% url 'main:login' %}" 
+                        class="px-4 py-2 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 transition-colors shadow-md">
+                        Login
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="sm:hidden flex items-center">
+                <button id="mobile-menu-button" type="button" class="text-gray-500 hover:text-purple-600 p-2 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+            
+        </div>
+    </div>
+    
+    <div id="mobile-menu" class="hidden sm:hidden w-full bg-white border-t border-purple-100 pb-2">
+        <div class="px-2 pt-2 pb-3 space-y-1">
+            <a href="{% url 'main:show_main' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Home</a>
+            <a href="{% url 'main:show_main' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Apparel</a>
+            <a href="{% url 'main:show_main' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">Shoes</a>
+            
+            {% if user.is_authenticated %}
+                <a onclick="showModal('create')" class="cursor-pointer block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-50">
+                    Add Item
+                </a>
+                
+                <hr class="my-2 border-gray-100">
+                
+                <div class="px-3 py-2 text-sm text-gray-700">
+                    <p>Halo, <span class="font-bold text-purple-600">{{ user.username }}</span>!</p>
+                    <p class="text-xs text-gray-500">{{ npm|default:'NPM Tidak Ditemukan' }} - {{ class|default:'Kelas Tidak Ditemukan' }}</p>
+                </div>
+
+                <a href="{% url 'main:logout' %}" 
+                    class="block w-full text-center mt-2 px-3 py-2 text-sm font-medium rounded-md text-white bg-red-500 hover:bg-red-600 transition-colors">
+                    Logout
+                </a>
+            {% else %}
+                <hr class="my-2 border-gray-100">
+                <a href="{% url 'main:login' %}" 
+                    class="block w-full text-center px-3 py-2 text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 transition-colors">
+                    Login
+                </a>
+                <a href="{% url 'main:register' %}" 
+                    class="block w-full text-center mt-1 px-3 py-2 text-sm font-medium rounded-md text-purple-700 border border-purple-700 hover:bg-purple-50 transition-colors">
+                    Register
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const button = document.getElementById('mobile-menu-button');
+        const menu = document.getElementById('mobile-menu');
+
+        button.addEventListener('click', () => {
+            // Toggle kelas 'hidden' untuk menampilkan/menyembunyikan menu
+            menu.classList.toggle('hidden');
+        });
+    });
+</script>
