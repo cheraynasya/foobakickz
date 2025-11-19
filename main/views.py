@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.html import strip_tags
 import datetime
+import requests
 
 from main.forms import ProductForm
 from main.models import Product
@@ -124,28 +125,61 @@ def show_xml_by_id(request, product_id):
         xml_data = serializers.serialize("xml", product_item)
         return HttpResponse(xml_data, content_type="application/xml")
 
+# @login_required(login_url='/login')
+# def show_json_user(request, product_id):
+#     try:
+#         product = Product.objects.select_related('user').get(pk=product_id)
+#         data = {
+#             'id': str(product.id),
+#             'user_id': product.user_id,
+#             'name': product.name,
+#             'price': product.price,
+#             'description': product.description,
+#             'thumbnail': product.thumbnail,
+#             'category': product.category,
+#             'is_featured': product.is_featured,
+#             'stock': product.stock,
+#             'views': product.views,
+#             'created_at': product.created_at.isoformat() if product.created_at else None,
+#             'user_username': product.user.username if product.user_id else 'Anonymous',
+#         }
+#         return JsonResponse(data)
+#     except Product.DoesNotExist:
+#         return JsonResponse({'detail': 'Not found'}, status=404)
 @login_required(login_url='/login')
-def show_json_by_id(request, product_id):
-    try:
-        product = Product.objects.select_related('user').get(pk=product_id)
-        data = {
-            'id': str(product.id),
-            'user_id': product.user_id,
-            'name': product.name,
-            'price': product.price,
-            'description': product.description,
-            'thumbnail': product.thumbnail,
-            'category': product.category,
-            'is_featured': product.is_featured,
-            'stock': product.stock,
-            'views': product.views,
-            'created_at': product.created_at.isoformat() if product.created_at else None,
-            'user_username': product.user.username if product.user_id else 'Anonymous',
-        }
-        return JsonResponse(data)
-    except Product.DoesNotExist:
-        return JsonResponse({'detail': 'Not found'}, status=404)
+def show_json_user(request):
+    """
+    Menampilkan HANYA produk yang terasosiasi dengan user yang sedang login.
+    Membutuhkan user terotentikasi.
+    """
+    # 1. Filter produk: Hanya ambil objek yang field 'user' nya sama dengan request.user
+    product_list = Product.objects.filter(user=request.user).select_related('user').all().order_by('-id')
     
+    # 2. Serialize data menggunakan fungsi helper (diasumsikan _serialize_product sudah didefinisikan)
+    data = [_serialize_product(p) for p in product_list]
+    
+    # 3. Kembalikan data dalam format JSON
+    return JsonResponse(data, safe=False)   
+
+def _serialize_product(p):
+    """Fungsi helper untuk membuat dictionary produk yang konsisten sesuai model Flutter"""
+    return {
+        # Menggunakan str(p.id) karena di model Flutter Anda 'id' adalah String
+        'id': str(p.id),
+        'user_id': p.user_id,
+        'name': p.name,
+        'price': p.price,
+        'description': p.description,
+        'thumbnail': p.thumbnail,
+        'category': p.category,
+        'is_featured': p.is_featured,
+        'stock': p.stock,
+        'views': p.views,
+        # Pastikan p.created_at adalah DateTimeField yang valid
+        'created_at': p.created_at.isoformat() if p.created_at else None, 
+        # Menggunakan p.user.username yang diambil dari relasi
+        'user_username': p.user.username if p.user_id else 'Anonymous', 
+    }
 
 @login_required
 @require_POST
@@ -221,3 +255,21 @@ def delete_product_entry_ajax(request, product_id):
 
     product.delete()
     return HttpResponse(b"DELETED", status=200)
+
+def proxy_image(request):
+    image_url = request.GET.get('url')
+    if not image_url:
+        return HttpResponse('No URL provided', status=400)
+    
+    try:
+        # Fetch image from external source
+        response = requests.get(image_url, timeout=10)
+        response.raise_for_status()
+        
+        # Return the image with proper content type
+        return HttpResponse(
+            response.content,
+            content_type=response.headers.get('Content-Type', 'image/jpeg')
+        )
+    except requests.RequestException as e:
+        return HttpResponse(f'Error fetching image: {str(e)}', status=500)

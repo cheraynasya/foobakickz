@@ -452,7 +452,7 @@
         if (!productId) return;
 
         if (e.target.classList.contains('btn-edit-item')) { 
-            const DETAIL_ENDPOINT = `{% url 'main:show_json_by_id' 0 %}`.replace('0', productId);
+            const DETAIL_ENDPOINT = `{% url 'main:show_json_user' %}`.replace('0', productId);
 
             try {
                 const response = await fetch(DETAIL_ENDPOINT);
